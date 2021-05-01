@@ -231,8 +231,8 @@ class Shot:
             return self.shot_by_ships_auto(player, field)
         else:
             self.weights = []
-            time.sleep(3)
             print(str(Board.letters[self.x] + str(self.y)))
+            time.sleep(3)
             self.receive_shot(player, field)
             self.recalculate_weight_map()
 
@@ -362,16 +362,17 @@ class Game:
         self.message = 'test'
 
     def start_game(self):
-        print('\t\033[1;033m"Морской бой"'.expandtabs(tabsize=30))
+        self.clear_screen()
+        print('\n\n\n\t\033[1;033m"Морской бой"'.expandtabs(tabsize=30))
         print('\tРасстановка кораблей игроков автоматическая.\n\n\n'.expandtabs(tabsize=15))
-        start = input('Начать игру (y), выйти (n): ')
+        start = input('Начать игру (y), выйти (n): \033[0m')
         if start == 'y':
             self.clear_screen()
             self.install_ship_by_player()
             self.game_shot()
         else:
             self.clear_screen()
-            print('\n\nВы вышли из игры.')
+            print('\n\nВы вышли из игры.\033[0m')
 
     @staticmethod
     def clear_screen():
@@ -407,7 +408,7 @@ class Game:
 
         if not self.current_player.auto:
             while self.next_player.count_ship > 0:
-                print('\033[1;34mХод:', self.current_player)
+                print('\033[1;36mХод:', self.current_player)
                 shot.shot_by_ships(self.next_player, self.field_comp)
                 if game.message == 'miss':
                     print('\033[1;33mПромах!', 'Переход хода...')
@@ -419,11 +420,11 @@ class Game:
                 if game.message == 'kill':
                     print('\033[1;33mКорабль уничтожен!', 'Ура!')
                 game.field_radar.print_board()
-            print('\033[1;31mВсе корабли потоплены. Вы выиграли!')
+            print('\033[1;31mВсе корабли потоплены. Вы выиграли!\033[0m')
 
         elif self.current_player.auto:
             while self.next_player.count_ship > 0:
-                print('\033[1;34mХод:', str(self.current_player) + ': ', end='')
+                print('\033[1;36mХод:', str(self.current_player) + ': ', end='')
                 shot.shot_by_ships_auto(self.next_player, self.field_user)
                 if game.message == 'miss':
                     print('\033[1;33mПромах!', 'Переход хода...')
@@ -436,7 +437,7 @@ class Game:
                     print('\033[1;33mВаш корабль уничтожен!', 'Соболезную...')
 
                 game.field_radar.print_board()
-            print('\033[1;31mВсе корабли потоплены. Выиграл компьютер!')
+            print('\033[1;31mВсе корабли потоплены. Выиграл компьютер!\033[0m')
 
     # метод для смены хода игроков
     def switch_players(self):
