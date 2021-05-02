@@ -13,7 +13,7 @@ kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 class Color:
     yellow2 = '\033[1;35m'
     reset = '\033[0m'
-    blue = '\033[0;36m'
+    blue = '\033[1;36m'
     yellow = '\033[1;33m'
     red = '\033[1;31m'
     miss = '\033[1;33m'
@@ -216,20 +216,20 @@ class Shot:
     # метод выстрела при автоматическом вводе координат
     def shot_by_ships_auto(self, player, field):
         self.get_weights()
-        if self.weights:
-            self.x, self.y = choice(self.weights)
-        else:
-            self.x = game.field_user.random_row()
-            self.y = game.field_user.random_col()
-        if field.board[self.x][self.y] in (Cell.miss_cell, Cell.damaged_ship, Cell.destroyed_ship) \
-                or game.field_weight.sequence[self.x][self.y] == 2:
-            return self.shot_by_ships_auto(player, field)
-        else:
-            self.weights = []
-            print(str(Board.letters[self.x] + str(self.y)))
-            time.sleep(3)
-            self.receive_shot(player, field)
-            self.recalculate_weight_map()
+        while True:
+            if self.weights:
+                self.x, self.y = choice(self.weights)
+            else:
+                self.x = game.field_user.random_row()
+                self.y = game.field_user.random_col()
+            if not field.board[self.x][self.y] in (Cell.miss_cell, Cell.damaged_ship, Cell.destroyed_ship) \
+                    or game.field_weight.sequence[self.x][self.y] == 2:
+                self.weights = []
+                print(str(Board.letters[self.x] + str(self.y)))
+                time.sleep(3)
+                self.receive_shot(player, field)
+                self.recalculate_weight_map()
+                break
 
     # метод обработки результатов выстрела
     def receive_shot(self, player, field):
@@ -364,9 +364,13 @@ class Game:
             self.clear_screen()
             self.install_ship_by_player()
             self.game_shot()
-        else:
+        elif start == 'n':
             self.clear_screen()
             print('\n\nВы вышли из игры.\033[0m')
+        else:
+            print('\033[1;033m\n\nПовторите выбор режима.\033[0m')
+            time.sleep(2)
+            self.start_game()
 
     @staticmethod
     def clear_screen():
@@ -376,21 +380,21 @@ class Game:
 
         # установка кораблей первого игрока
         for len_ship in Ship.ships_rules:
-            ship = Ship(len_ship)
-            ship.install_ship(self.field_user, self.current_player.occupied, ship, self.current_player)
-            while not ship.setup:
+            while True:
                 ship = Ship(len_ship)
                 ship.install_ship(self.field_user, self.current_player.occupied, ship, self.current_player)
-            ship.occupied_board(self.field_user, self.current_player.occupied)
+                if ship.setup:
+                    ship.occupied_board(self.field_user, self.current_player.occupied)
+                    break
 
         # установка кораблей второго игрока
         for len_ship in Ship.ships_rules:
-            ship = Ship(len_ship)
-            ship.install_ship(self.field_comp, self.next_player.occupied, ship, self.next_player)
-            while not ship.setup:
+            while True:
                 ship = Ship(len_ship)
                 ship.install_ship(self.field_comp, self.next_player.occupied, ship, self.next_player)
-            ship.occupied_board(self.field_comp, self.next_player.occupied)
+                if ship.setup:
+                    ship.occupied_board(self.field_comp, self.next_player.occupied)
+                    break
 
         # печать игровых полей
         self.field_radar.print_board()
