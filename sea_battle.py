@@ -13,7 +13,7 @@ kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 class Color:
     yellow2 = '\033[1;35m'
     reset = '\033[0m'
-    blue = '\033[0;34m'
+    blue = '\033[0;36m'
     yellow = '\033[1;33m'
     red = '\033[1;31m'
     miss = '\033[1;33m'
@@ -113,9 +113,6 @@ class Ship:
     Класс кораблей
     """
     ships_rules = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # список длин кораблей
-    occupied_user = []  # список занятых ячеек поля игрока
-    occupied_comp = []  # список занятых ячеек поля компьютера
-    count_ship = 10  # количество кораблей игрока
 
     def __init__(self, len_ship):
         self.x = game.field_user.random_row()
@@ -126,7 +123,6 @@ class Ship:
         self.direction = randint(0, 1)
         self.set_ship()
         self.setup = True
-        self.list_ships = []
 
     def __str__(self):
         return Cell.ship_cell
@@ -220,7 +216,6 @@ class Shot:
     # метод выстрела при автоматическом вводе координат
     def shot_by_ships_auto(self, player, field):
         self.get_weights()
-        # print(self.weights)
         if self.weights:
             self.x, self.y = choice(self.weights)
         else:
@@ -250,7 +245,6 @@ class Shot:
                     game.field_radar.mark_destroyed_ship(player, ship)
                 else:
                     field.mark_destroyed_ship(player, ship)
-                player.count_ship -= 1
                 player.list_ships.remove(ship)
                 game.message = 'kill'
                 return 'kill'
@@ -341,8 +335,8 @@ class Player:
     def __init__(self, name, auto):
         self.name = name
         self.auto = auto
-        self.count_ship = 10
-        self.list_ships = []
+        self.list_ships = []  # список кораблей игрока
+        self.occupied = []  # список занятых ячеек
 
     def __str__(self):
         return self.name
@@ -383,20 +377,20 @@ class Game:
         # установка кораблей первого игрока
         for len_ship in Ship.ships_rules:
             ship = Ship(len_ship)
-            ship.install_ship(self.field_user, Ship.occupied_user, ship, self.current_player)
+            ship.install_ship(self.field_user, self.current_player.occupied, ship, self.current_player)
             while not ship.setup:
                 ship = Ship(len_ship)
-                ship.install_ship(self.field_user, Ship.occupied_user, ship, self.current_player)
-            ship.occupied_board(self.field_user, Ship.occupied_user)
+                ship.install_ship(self.field_user, self.current_player.occupied, ship, self.current_player)
+            ship.occupied_board(self.field_user, self.current_player.occupied)
 
         # установка кораблей второго игрока
         for len_ship in Ship.ships_rules:
             ship = Ship(len_ship)
-            ship.install_ship(self.field_comp, Ship.occupied_comp, ship, self.next_player)
+            ship.install_ship(self.field_comp, self.next_player.occupied, ship, self.next_player)
             while not ship.setup:
                 ship = Ship(len_ship)
-                ship.install_ship(self.field_comp, Ship.occupied_comp, ship, self.next_player)
-            ship.occupied_board(self.field_comp, Ship.occupied_comp)
+                ship.install_ship(self.field_comp, self.next_player.occupied, ship, self.next_player)
+            ship.occupied_board(self.field_comp, self.next_player.occupied)
 
         # печать игровых полей
         self.field_radar.print_board()
@@ -407,7 +401,7 @@ class Game:
         shot = Shot()
 
         if not self.current_player.auto:
-            while self.next_player.count_ship > 0:
+            while len(self.next_player.list_ships) > 0:
                 print('\033[1;36mХод:', self.current_player)
                 shot.shot_by_ships(self.next_player, self.field_comp)
                 if game.message == 'miss':
@@ -423,7 +417,7 @@ class Game:
             print('\033[1;31mВсе корабли потоплены. Вы выиграли!\033[0m')
 
         elif self.current_player.auto:
-            while self.next_player.count_ship > 0:
+            while len(self.next_player.list_ships) > 0:
                 print('\033[1;36mХод:', str(self.current_player) + ': ', end='')
                 shot.shot_by_ships_auto(self.next_player, self.field_user)
                 if game.message == 'miss':
